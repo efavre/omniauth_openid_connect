@@ -338,9 +338,15 @@ module OmniAuth
       end
 
       def redirect_uri
-        return client_options.redirect_uri unless params['redirect_uri']
+        if client_options.redirect_uri.respond_to?(:call)
+          return client_options.redirect_uri.call(env) if options.state.arity == 1
 
-        "#{ client_options.redirect_uri }?redirect_uri=#{ CGI.escape(params['redirect_uri']) }"
+          client_options.redirect_uri.call
+        else
+          return client_options.redirect_uri unless params['redirect_uri']
+
+          "#{ client_options.redirect_uri }?redirect_uri=#{ CGI.escape(params['redirect_uri']) }"
+        end
       end
 
       def encoded_post_logout_redirect_uri
